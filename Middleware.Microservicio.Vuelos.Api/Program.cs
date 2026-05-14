@@ -11,6 +11,7 @@ builder.Services.AddSeguridadHttpClient(builder.Configuration);
 builder.Services.AddBusJwtAuthentication(builder.Configuration);
 
 builder.Services.AddGeografiaHttpClient(builder.Configuration);
+builder.Services.AddAeropuertosHttpClient(builder.Configuration);
 // ── Build ──────────────────────────────────────────────
 var app = builder.Build();
 
@@ -39,7 +40,7 @@ app.MapGet("/test/ping", (HttpContext ctx) =>
 .RequireAuthorization();*/
 
 // prueba de endpoint protegido para verificar geografi 
-
+/*
 app.MapGet("/test/geografia/pais/{id}", async (int id, IGeografiaDataService svc) =>
 {
     var pais = await svc.GetPaisByIdAsync(id);
@@ -50,7 +51,16 @@ app.MapGet("/test/geografia/ciudad/{id}", async (int id, IGeografiaDataService s
 {
     var ciudad = await svc.GetCiudadByIdAsync(id);
     return ciudad is null ? Results.NotFound("Ciudad no encontrada") : Results.Ok(ciudad);
+});*/
+
+
+// Endpoint de prueba para verificar que el Bus puede comunicarse con MS Aeropuertos
+app.MapGet("/test/aeropuertos/{id}", async (int id, IAeropuertosDataService svc) =>
+{
+    var result = await svc.GetByIdAsync(id);
+    return result is null ? Results.NotFound() : Results.Ok(result);
 });
+
 
 app.MapControllers();
 app.Run();
