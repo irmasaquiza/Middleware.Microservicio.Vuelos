@@ -14,6 +14,7 @@ builder.Services.AddGeografiaHttpClient(builder.Configuration);
 builder.Services.AddAeropuertosHttpClient(builder.Configuration);
 builder.Services.AddClientesHttpClient(builder.Configuration);
 builder.Services.AddVuelosHttpClient(builder.Configuration);
+builder.Services.AddReservasFHttpClient(builder.Configuration);
 // ── Build ──────────────────────────────────────────────
 var app = builder.Build();
 
@@ -124,6 +125,77 @@ app.MapGet("/test/vuelos/{idVuelo}/asientos/{idAsiento}", async (
 app.MapGet("/test/vuelos/{id}/escalas", async (int id, IVuelosDataService svc) =>
 {
     var result = await svc.GetEscalasByVueloAsync(id);
+    return Results.Ok(result);
+});
+
+
+// ── TEST Reservas ────────────────────────────────────────────
+app.MapGet("/test/reservas/{id}", async (
+    int id, IReservasDataService svc, HttpContext ctx) =>
+{
+    var token = ctx.Request.Headers["Authorization"]
+        .ToString().Replace("Bearer ", "");
+    if (string.IsNullOrWhiteSpace(token)) return Results.Unauthorized();
+
+    var result = await svc.GetReservaByIdAsync(id, token);
+    return result is null ? Results.NotFound("Reserva no encontrada") : Results.Ok(result);
+});
+
+app.MapGet("/test/reservas/{id}/valida", async (
+    int id, IReservasDataService svc, HttpContext ctx) =>
+{
+    var token = ctx.Request.Headers["Authorization"]
+        .ToString().Replace("Bearer ", "");
+    if (string.IsNullOrWhiteSpace(token)) return Results.Unauthorized();
+
+    var result = await svc.ValidarReservaPagableAsync(id, token);
+    return result is null ? Results.BadRequest("Reserva no está en estado pagable") : Results.Ok(result);
+});
+
+// ── TEST Boletos ─────────────────────────────────────────────
+app.MapGet("/test/boletos/{id}", async (
+    int id, IReservasDataService svc, HttpContext ctx) =>
+{
+    var token = ctx.Request.Headers["Authorization"]
+        .ToString().Replace("Bearer ", "");
+    if (string.IsNullOrWhiteSpace(token)) return Results.Unauthorized();
+
+    var result = await svc.GetBoletoByIdAsync(id, token);
+    return result is null ? Results.NotFound("Boleto no encontrado") : Results.Ok(result);
+});
+
+app.MapGet("/test/reservas/{id}/boletos", async (
+    int id, IReservasDataService svc, HttpContext ctx) =>
+{
+    var token = ctx.Request.Headers["Authorization"]
+        .ToString().Replace("Bearer ", "");
+    if (string.IsNullOrWhiteSpace(token)) return Results.Unauthorized();
+
+    var result = await svc.GetBoletosByReservaAsync(id, token);
+    return Results.Ok(result);
+});
+
+// ── TEST Facturas ────────────────────────────────────────────
+app.MapGet("/test/reservas/{id}/factura", async (
+    int id, IReservasDataService svc, HttpContext ctx) =>
+{
+    var token = ctx.Request.Headers["Authorization"]
+        .ToString().Replace("Bearer ", "");
+    if (string.IsNullOrWhiteSpace(token)) return Results.Unauthorized();
+
+    var result = await svc.GetFacturaByReservaAsync(id, token);
+    return result is null ? Results.NotFound("Factura no encontrada") : Results.Ok(result);
+});
+
+// ── TEST Equipaje ────────────────────────────────────────────
+app.MapGet("/test/boletos/{id}/equipaje", async (
+    int id, IReservasDataService svc, HttpContext ctx) =>
+{
+    var token = ctx.Request.Headers["Authorization"]
+        .ToString().Replace("Bearer ", "");
+    if (string.IsNullOrWhiteSpace(token)) return Results.Unauthorized();
+
+    var result = await svc.GetEquipajeByBoletoAsync(id, token);
     return Results.Ok(result);
 });
 
