@@ -1,4 +1,5 @@
 using Middleware.Vuelos.Api.Extensions;
+using Middleware.Vuelos.DataManagement.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddSeguridadHttpClient(builder.Configuration);
 builder.Services.AddBusJwtAuthentication(builder.Configuration);
 
+builder.Services.AddGeografiaHttpClient(builder.Configuration);
 // ── Build ──────────────────────────────────────────────
 var app = builder.Build();
 
@@ -35,6 +37,20 @@ app.MapGet("/test/ping", (HttpContext ctx) =>
     });
 })
 .RequireAuthorization();*/
+
+// prueba de endpoint protegido para verificar geografi 
+
+app.MapGet("/test/geografia/pais/{id}", async (int id, IGeografiaDataService svc) =>
+{
+    var pais = await svc.GetPaisByIdAsync(id);
+    return pais is null ? Results.NotFound("País no encontrado") : Results.Ok(pais);
+});
+
+app.MapGet("/test/geografia/ciudad/{id}", async (int id, IGeografiaDataService svc) =>
+{
+    var ciudad = await svc.GetCiudadByIdAsync(id);
+    return ciudad is null ? Results.NotFound("Ciudad no encontrada") : Results.Ok(ciudad);
+});
 
 app.MapControllers();
 app.Run();

@@ -1,10 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text.Json.Serialization;
 
-namespace Middleware.Microservicio.Vuelos.DataAccess.Models
+namespace Middleware.Vuelos.DataAccess.Models;
+
+/// <summary>
+/// Envoltorio genérico de respuesta que usan todos los microservicios.
+/// Reutilizable para cualquier MS que devuelva ApiResponse<T>.
+/// </summary>
+public class ApiResponseDto<T>
 {
-    internal class ApiResponseDto
-    {
-    }
+    [JsonPropertyName("success")]
+    public bool Success { get; set; }
+
+    [JsonPropertyName("message")]
+    public string Message { get; set; } = null!;
+
+    [JsonPropertyName("data")]
+    public T? Data { get; set; }
+
+    [JsonPropertyName("errors")]
+    public List<string> Errors { get; set; } = [];
 }
