@@ -12,6 +12,8 @@ builder.Services.AddBusJwtAuthentication(builder.Configuration);
 
 builder.Services.AddGeografiaHttpClient(builder.Configuration);
 builder.Services.AddAeropuertosHttpClient(builder.Configuration);
+builder.Services.AddClientesHttpClient(builder.Configuration);
+builder.Services.AddVuelosHttpClient(builder.Configuration);
 // ── Build ──────────────────────────────────────────────
 var app = builder.Build();
 
@@ -55,11 +57,77 @@ app.MapGet("/test/geografia/ciudad/{id}", async (int id, IGeografiaDataService s
 
 
 // Endpoint de prueba para verificar que el Bus puede comunicarse con MS Aeropuertos
-app.MapGet("/test/aeropuertos/{id}", async (int id, IAeropuertosDataService svc) =>
+
+/*app.MapGet("/test/aeropuertos/{id}", async (int id, IAeropuertosDataService svc) =>
 {
     var result = await svc.GetByIdAsync(id);
     return result is null ? Results.NotFound() : Results.Ok(result);
+});*/
+
+// Pruenas para el bus de integracion de clientes
+
+app.MapGet("/test/clientes/{id}", async (int id, IClientesDataService svc,
+    HttpContext ctx) =>
+{
+    var token = ctx.Request.Headers["Authorization"]
+        .ToString().Replace("Bearer ", "");
+    var result = await svc.GetClienteByIdAsync(id, token);
+    return result is null ? Results.NotFound() : Results.Ok(result);
 });
+
+
+
+app.MapGet("/test/pasajeros/{id}", async (
+    int id,
+    IClientesDataService svc,
+    HttpContext ctx) =>
+{
+    var token = ctx.Request.Headers["Authorization"]
+        .ToString().Replace("Bearer ", "");
+
+    if (string.IsNullOrWhiteSpace(token))
+        return Results.Unauthorized();
+
+    var result = await svc.GetPasajeroByIdAsync(id, token);
+    return result is null ? Results.NotFound("Pasajero no encontrado") : Results.Ok(result);
+});
+
+
+// ── TEST Vuelos ──────────────────────────────────────────────
+app.MapGet("/test/vuelos/{id}", async (int id, IVuelosDataService svc) =>
+{
+    var result = await svc.GetVueloByIdAsync(id);
+    return result is null ? Results.NotFound("Vuelo no encontrado") : Results.Ok(result);
+});
+
+app.MapGet("/test/vuelos/{id}/valido", async (int id, IVuelosDataService svc) =>
+{
+    var result = await svc.ValidarVueloOperableAsync(id);
+    return result is null ? Results.BadRequest("Vuelo no operable") : Results.Ok(result);
+});
+
+// ── TEST Asientos ────────────────────────────────────────────
+app.MapGet("/test/vuelos/{id}/asientos", async (int id, IVuelosDataService svc) =>
+{
+    var result = await svc.GetAsientosByVueloAsync(id);
+    return Results.Ok(result);
+});
+
+app.MapGet("/test/vuelos/{idVuelo}/asientos/{idAsiento}", async (
+    int idVuelo, int idAsiento, IVuelosDataService svc) =>
+{
+    var result = await svc.GetAsientoByIdAsync(idVuelo, idAsiento);
+    return result is null ? Results.NotFound("Asiento no encontrado") : Results.Ok(result);
+});
+
+// ── TEST Escalas ─────────────────────────────────────────────
+app.MapGet("/test/vuelos/{id}/escalas", async (int id, IVuelosDataService svc) =>
+{
+    var result = await svc.GetEscalasByVueloAsync(id);
+    return Results.Ok(result);
+});
+
+
 
 
 app.MapControllers();

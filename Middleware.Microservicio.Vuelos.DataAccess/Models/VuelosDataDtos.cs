@@ -1,10 +1,184 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text.Json.Serialization;
 
-namespace Middleware.Microservicio.Vuelos.DataAccess.Models
+namespace Middleware.Vuelos.DataAccess.Models;
+
+// ============================================================
+// DTOs que mapean exactamente los contratos REST de MS Vuelos.
+// Endpoints validados contra el microservicio real.
+// ============================================================
+
+// ------------------------------------------------------------
+// GET /api/v1/vuelos/{id_vuelo}
+// POST /api/v1/vuelos
+// PUT /api/v1/vuelos/{id_vuelo}
+// ------------------------------------------------------------
+
+/// <summary>
+/// Representa un vuelo devuelto por MS Vuelos.
+/// </summary>
+public class VueloDto
 {
-    internal class VuelosDataDtos
-    {
-    }
+    [JsonPropertyName("idVuelo")]
+    public int IdVuelo { get; set; }
+
+    [JsonPropertyName("idAeropuertoOrigen")]
+    public int IdAeropuertoOrigen { get; set; }
+
+    [JsonPropertyName("idAeropuertoDestino")]
+    public int IdAeropuertoDestino { get; set; }
+
+    [JsonPropertyName("numeroVuelo")]
+    public string NumeroVuelo { get; set; } = null!;
+
+    [JsonPropertyName("fechaHoraSalida")]
+    public DateTime FechaHoraSalida { get; set; }
+
+    [JsonPropertyName("fechaHoraLlegada")]
+    public DateTime FechaHoraLlegada { get; set; }
+
+    [JsonPropertyName("duracionMin")]
+    public int DuracionMin { get; set; }
+
+    [JsonPropertyName("precioBase")]
+    public decimal PrecioBase { get; set; }
+
+    [JsonPropertyName("capacidadTotal")]
+    public int CapacidadTotal { get; set; }
+
+    /// <summary>PROGRAMADO | EN_VUELO | ATERRIZADO | CANCELADO | DEMORADO</summary>
+    [JsonPropertyName("estadoVuelo")]
+    public string EstadoVuelo { get; set; } = null!;
+
+    [JsonPropertyName("estado")]
+    public string Estado { get; set; } = null!;
+
+    [JsonPropertyName("eliminado")]
+    public bool Eliminado { get; set; }
+}
+
+// ------------------------------------------------------------
+// GET /api/v1/vuelos/{id_vuelo}/escalas/{id_escala}
+// POST /api/v1/vuelos/{id_vuelo}/escalas
+// ------------------------------------------------------------
+
+/// <summary>
+/// Representa una escala devuelta por MS Vuelos.
+/// </summary>
+public class EscalaDto
+{
+    [JsonPropertyName("idEscala")]
+    public int IdEscala { get; set; }
+
+    [JsonPropertyName("idVuelo")]
+    public int IdVuelo { get; set; }
+
+    [JsonPropertyName("idAeropuerto")]
+    public int IdAeropuerto { get; set; }
+
+    [JsonPropertyName("orden")]
+    public int Orden { get; set; }
+
+    [JsonPropertyName("fechaHoraLlegada")]
+    public DateTime FechaHoraLlegada { get; set; }
+
+    [JsonPropertyName("fechaHoraSalida")]
+    public DateTime FechaHoraSalida { get; set; }
+
+    [JsonPropertyName("duracionMin")]
+    public int DuracionMin { get; set; }
+
+    /// <summary>TECNICA | COMERCIAL</summary>
+    [JsonPropertyName("tipoEscala")]
+    public string TipoEscala { get; set; } = null!;
+
+    [JsonPropertyName("terminal")]
+    public string? Terminal { get; set; }
+
+    [JsonPropertyName("puerta")]
+    public string? Puerta { get; set; }
+
+    [JsonPropertyName("observaciones")]
+    public string? Observaciones { get; set; }
+
+    [JsonPropertyName("estado")]
+    public string Estado { get; set; } = null!;
+
+    [JsonPropertyName("eliminado")]
+    public bool Eliminado { get; set; }
+}
+
+// ------------------------------------------------------------
+// GET /api/v1/vuelos/{id_vuelo}/asientos/{id_asiento}
+// GET /api/v1/vuelos/{id_vuelo}/asientos
+// PATCH /api/v1/vuelos/{id_vuelo}/asientos/{id_asiento}
+// ------------------------------------------------------------
+
+/// <summary>
+/// Representa un asiento devuelto por MS Vuelos.
+/// </summary>
+public class AsientoDto
+{
+    [JsonPropertyName("idAsiento")]
+    public int IdAsiento { get; set; }
+
+    [JsonPropertyName("idVuelo")]
+    public int IdVuelo { get; set; }
+
+    [JsonPropertyName("numeroAsiento")]
+    public string NumeroAsiento { get; set; } = null!;
+
+    /// <summary>ECONOMICA | EJECUTIVA | PRIMERA</summary>
+    [JsonPropertyName("clase")]
+    public string Clase { get; set; } = null!;
+
+    [JsonPropertyName("disponible")]
+    public bool Disponible { get; set; }
+
+    [JsonPropertyName("precioExtra")]
+    public decimal PrecioExtra { get; set; }
+
+    /// <summary>VENTANA | PASILLO | CENTRO — nullable</summary>
+    [JsonPropertyName("posicion")]
+    public string? Posicion { get; set; }
+
+    [JsonPropertyName("estado")]
+    public string Estado { get; set; } = null!;
+
+    [JsonPropertyName("eliminado")]
+    public bool Eliminado { get; set; }
+}
+
+// ------------------------------------------------------------
+// PATCH /api/v1/vuelos/{id_vuelo}/asientos/{id_asiento}
+// Usado por el Bus para marcar asiento como no disponible
+// al procesar reservas desde MS ReservasF.
+// Roles: ADMINISTRADOR, AEROLINEA
+// ------------------------------------------------------------
+
+/// <summary>
+/// Request para actualizar disponibilidad de un asiento.
+/// El Bus lo usa al coordinar reservas con MS ReservasF.
+/// </summary>
+public class ActualizarAsientoRequestDto
+{
+    [JsonPropertyName("disponible")]
+    public bool Disponible { get; set; }
+}
+
+/// <summary>
+/// Wrapper genérico de respuesta de MS Vuelos.
+/// </summary>
+public class VuelosApiResponseDto<T>
+{
+    [JsonPropertyName("success")]
+    public bool Success { get; set; }
+
+    [JsonPropertyName("message")]
+    public string Message { get; set; } = null!;
+
+    [JsonPropertyName("data")]
+    public T? Data { get; set; }
+
+    [JsonPropertyName("errors")]
+    public List<string> Errors { get; set; } = [];
 }
