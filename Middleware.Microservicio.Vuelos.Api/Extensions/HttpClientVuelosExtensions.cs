@@ -40,14 +40,14 @@ public static class HttpClientVuelosExtensions
         {
             client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
-            client.Timeout = TimeSpan.FromSeconds(30);
+            client.Timeout = TimeSpan.FromSeconds(120);
         }).AddHttpMessageHandler<TokenForwardingHandler>(); // ✅ agregar esto
 
         services.AddHttpClient<VuelosClient>(client =>
         {
             client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
-            client.Timeout = TimeSpan.FromSeconds(30);
+            client.Timeout = TimeSpan.FromSeconds(120);
         }).AddHttpMessageHandler<TokenForwardingHandler>(); // ✅ agregar esto
 
 

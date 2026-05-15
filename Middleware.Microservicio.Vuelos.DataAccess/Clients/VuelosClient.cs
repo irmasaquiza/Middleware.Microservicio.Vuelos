@@ -12,7 +12,7 @@ namespace Middleware.Vuelos.DataAccess.Clients;
 /// URL dev IIS Express: https://localhost:44385
 /// Named HttpClient: "VuelosClient"
 /// </summary>
-public class VuelosClient : IVuelosClient
+public partial class VuelosClient : IVuelosClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<VuelosClient> _logger;

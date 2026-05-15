@@ -12,7 +12,7 @@ namespace Middleware.Vuelos.DataAccess.Clients;
 /// URL dev IIS Express: https://localhost:44363
 /// Named HttpClient: "AeropuertosClient"
 /// </summary>
-public class AeropuertosClient : IAeropuertosClient
+public partial class AeropuertosClient : IAeropuertosClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<AeropuertosClient> _logger;
