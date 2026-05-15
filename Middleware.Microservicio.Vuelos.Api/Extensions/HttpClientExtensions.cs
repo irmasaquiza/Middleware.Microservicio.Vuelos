@@ -45,6 +45,14 @@ public static class HttpClientSeguridadExtensions
             client.Timeout = TimeSpan.FromSeconds(30);
         });
 
+        // ✅ Agregar esto — registra el concreto también
+        services.AddHttpClient<SeguridadClient>(client =>
+        {
+            client.BaseAddress = new Uri(baseUrl);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
         // Registrar el DataService de Seguridad.
         services.AddScoped<ISeguridadDataService, SeguridadDataService>();
 

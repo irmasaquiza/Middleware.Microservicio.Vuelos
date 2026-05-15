@@ -14,7 +14,7 @@ namespace Middleware.Vuelos.DataAccess.Clients;
 /// Named HttpClient: "GeografiaClient"
 /// Configurado en HttpClientGeografiaExtensions.cs
 /// </summary>
-public class GeografiaClient : IGeografiaClient
+public partial class GeografiaClient : IGeografiaClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<GeografiaClient> _logger;

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Middleware.Vuelos.Business.Exceptions;
 
-namespace Middleware.Microservicio.Vuelos.Business.Exceptions
+public class UnauthorizedBusinessException : Exception
 {
-    internal class UnauthorizedBusinessException
-    {
-    }
+    public UnauthorizedBusinessException(string message) : base(message) { }
 }

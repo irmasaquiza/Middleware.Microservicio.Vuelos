@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Middleware.Vuelos.Business.DTOs.Facturacion;
 
-namespace Middleware.Microservicio.Vuelos.Business.DTOs.Facturacion
+/// <summary>
+/// Request para emitir una factura manualmente.
+/// Generalmente la factura se genera automáticamente al pagar.
+/// </summary>
+public class EmitirFacturaRequest
 {
-    internal class EmitirFacturaRequest
-    {
-    }
+    public int IdReserva { get; set; }
+    public string? ObservacionesFactura { get; set; }
 }

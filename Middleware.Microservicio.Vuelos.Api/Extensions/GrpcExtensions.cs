@@ -1,6 +1,7 @@
-﻿namespace Middleware.Microservicio.Vuelos.Api.Extensions
+﻿namespace Middleware.Vuelos.Api.Extensions;
+
+public static class GrpcExtensions
 {
-    public class GrpcExtensions
-    {
-    }
+    // gRPC no habilitado en el Bus de Integración.
+    // El Bus usa solo REST para comunicarse con los microservicios.
 }

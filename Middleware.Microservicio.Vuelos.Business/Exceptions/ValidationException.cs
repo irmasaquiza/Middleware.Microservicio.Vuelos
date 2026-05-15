@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Middleware.Vuelos.Business.Exceptions;
 
-namespace Middleware.Microservicio.Vuelos.Business.Exceptions
+public class ValidationException : Exception
 {
-    internal class ValidationException
+    public List<string> Errors { get; }
+
+    public ValidationException(string message, List<string>? errors = null)
+        : base(message)
     {
+        Errors = errors ?? [];
     }
 }

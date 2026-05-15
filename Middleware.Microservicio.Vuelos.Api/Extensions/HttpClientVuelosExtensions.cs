@@ -42,6 +42,12 @@ public static class HttpClientVuelosExtensions
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.Timeout = TimeSpan.FromSeconds(30);
         });
+        services.AddHttpClient<VuelosClient>(client =>
+        {
+            client.BaseAddress = new Uri(baseUrl);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
 
         services.AddScoped<IVuelosDataService, VuelosDataService>();
 

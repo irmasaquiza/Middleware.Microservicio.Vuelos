@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Middleware.Vuelos.Business.Exceptions;
 
-namespace Middleware.Microservicio.Vuelos.Business.Exceptions
+public class NotFoundException : Exception
 {
-    internal class NotFoundException
-    {
-    }
+    public NotFoundException(string message) : base(message) { }
 }

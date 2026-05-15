@@ -1,10 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Middleware.Vuelos.Business.DTOs.Portal;
 
-namespace Middleware.Microservicio.Vuelos.Business.DTOs.Portal
+public class BoletoPortalResponse
 {
-    internal class BoletoPortalResponse
-    {
-    }
+    public int IdBoleto { get; set; }
+    public string CodigoBoleto { get; set; } = null!;
+    public int IdVuelo { get; set; }
+    public string NumeroVuelo { get; set; } = null!;
+    public string NumeroAsiento { get; set; } = null!;
+    public string Clase { get; set; } = null!;
+    public decimal PrecioFinal { get; set; }
+    public string EstadoBoleto { get; set; } = null!;
+    public DateTime FechaEmision { get; set; }
+    public string CodigoReserva { get; set; } = null!;
 }

@@ -17,7 +17,7 @@ namespace Middleware.Vuelos.DataAccess.Clients;
 /// Named HttpClient esperado: "SeguridadClient"
 /// Configurado en HttpClientExtensions.cs del Bus.
 /// </summary>
-public class SeguridadClient : ISeguridadClient
+public partial class SeguridadClient : ISeguridadClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<SeguridadClient> _logger;

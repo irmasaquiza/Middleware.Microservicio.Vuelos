@@ -43,6 +43,13 @@ public static class HttpClientGeografiaExtensions
             client.Timeout = TimeSpan.FromSeconds(15);
         });
 
+        services.AddHttpClient<GeografiaClient>(client =>
+        {
+            client.BaseAddress = new Uri(baseUrl);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
         // Registrar el DataService de Geografía.
         services.AddScoped<IGeografiaDataService, GeografiaDataService>();
 

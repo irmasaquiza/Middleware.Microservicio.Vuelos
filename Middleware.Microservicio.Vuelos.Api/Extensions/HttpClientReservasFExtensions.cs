@@ -23,6 +23,13 @@ public static class HttpClientReservasFExtensions
             client.Timeout = TimeSpan.FromSeconds(60);
         });
 
+        services.AddHttpClient<ReservasFClient>(client =>
+        {
+            client.BaseAddress = new Uri(baseUrl);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(60); // ← 60s igual que el original
+        });
+
         services.AddScoped<IReservasDataService, ReservasDataService>();
 
         return services;

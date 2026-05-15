@@ -41,6 +41,13 @@ public static class HttpClientAeropuertosExtensions
             client.Timeout = TimeSpan.FromSeconds(30);
         });
 
+        services.AddHttpClient<AeropuertosClient>(client =>
+        {
+            client.BaseAddress = new Uri(baseUrl);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
         services.AddScoped<IAeropuertosDataService, AeropuertosDataService>();
 
         return services;

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Middleware.Vuelos.Business.DTOs.Reservas;
 
-namespace Middleware.Microservicio.Vuelos.Business.DTOs.Reservas
+public class CancelarReservaRequest
 {
-    internal class CancelarReservaRequest
-    {
-    }
+    public string Motivo { get; set; } = null!;
 }

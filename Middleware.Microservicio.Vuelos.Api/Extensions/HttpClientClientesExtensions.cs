@@ -42,6 +42,13 @@ public static class HttpClientClientesExtensions
             client.Timeout = TimeSpan.FromSeconds(30);
         });
 
+        services.AddHttpClient<ClientesClient>(client =>
+        {
+            client.BaseAddress = new Uri(baseUrl);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
         services.AddScoped<IClientesDataService, ClientesDataService>();
 
         return services;
