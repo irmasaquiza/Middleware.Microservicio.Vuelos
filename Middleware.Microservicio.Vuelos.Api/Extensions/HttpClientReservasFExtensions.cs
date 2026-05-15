@@ -2,7 +2,7 @@
 using Middleware.Vuelos.DataAccess.Clients.Interfaces;
 using Middleware.Vuelos.DataManagement.Interfaces;
 using Middleware.Vuelos.DataManagement.Services;
-
+using Middleware.Vuelos.Api.Handlers;
 namespace Middleware.Vuelos.Api.Extensions;
 
 public static class HttpClientReservasFExtensions
@@ -21,14 +21,16 @@ public static class HttpClientReservasFExtensions
             client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.Timeout = TimeSpan.FromSeconds(60);
-        });
+        }).AddHttpMessageHandler<TokenForwardingHandler>(); // ✅ agregar esto
+
 
         services.AddHttpClient<ReservasFClient>(client =>
         {
             client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.Timeout = TimeSpan.FromSeconds(60); // ← 60s igual que el original
-        });
+        }).AddHttpMessageHandler<TokenForwardingHandler>(); // ✅ agregar esto
+
 
         services.AddScoped<IReservasDataService, ReservasDataService>();
 

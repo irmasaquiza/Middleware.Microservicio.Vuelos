@@ -2,7 +2,7 @@
 using Middleware.Vuelos.DataAccess.Clients.Interfaces;
 using Middleware.Vuelos.DataManagement.Interfaces;
 using Middleware.Vuelos.DataManagement.Services;
-
+using Middleware.Vuelos.Api.Handlers;
 namespace Middleware.Vuelos.Api.Extensions;
 
 /// <summary>
@@ -41,14 +41,16 @@ public static class HttpClientGeografiaExtensions
 
             // Geografía es solo catálogo — las consultas son rápidas.
             client.Timeout = TimeSpan.FromSeconds(15);
-        });
+        }).AddHttpMessageHandler<TokenForwardingHandler>(); // ✅ agregar esto
+
 
         services.AddHttpClient<GeografiaClient>(client =>
         {
             client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.Timeout = TimeSpan.FromSeconds(30);
-        });
+        }).AddHttpMessageHandler<TokenForwardingHandler>(); // ✅ agregar esto
+
 
         // Registrar el DataService de Geografía.
         services.AddScoped<IGeografiaDataService, GeografiaDataService>();

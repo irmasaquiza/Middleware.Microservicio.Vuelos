@@ -2,7 +2,7 @@
 using Middleware.Vuelos.DataAccess.Clients.Interfaces;
 using Middleware.Vuelos.DataManagement.Interfaces;
 using Middleware.Vuelos.DataManagement.Services;
-
+using Middleware.Vuelos.Api.Handlers;
 namespace Middleware.Vuelos.Api.Extensions;
 
 /// <summary>
@@ -41,13 +41,15 @@ public static class HttpClientVuelosExtensions
             client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.Timeout = TimeSpan.FromSeconds(30);
-        });
+        }).AddHttpMessageHandler<TokenForwardingHandler>(); // ✅ agregar esto
+
         services.AddHttpClient<VuelosClient>(client =>
         {
             client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.Timeout = TimeSpan.FromSeconds(30);
-        });
+        }).AddHttpMessageHandler<TokenForwardingHandler>(); // ✅ agregar esto
+
 
         services.AddScoped<IVuelosDataService, VuelosDataService>();
 
