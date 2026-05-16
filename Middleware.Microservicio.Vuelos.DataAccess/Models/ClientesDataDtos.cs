@@ -112,6 +112,12 @@ public class CrearClienteRequestDto
 
     [JsonPropertyName("genero")]
     public string? Genero { get; set; }
+
+    [JsonPropertyName("username")]       // ✅ agregar
+    public string Username { get; set; } = null!;
+
+    [JsonPropertyName("password")]       // ✅ agregar
+    public string Password { get; set; } = null!;
 }
 
 // ------------------------------------------------------------
