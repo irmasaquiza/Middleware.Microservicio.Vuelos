@@ -128,25 +128,25 @@ public class ReservaDetalleDto
 /// </summary>
 public class CrearReservaRequestDto
 {
-    [JsonPropertyName("idCliente")]
+    [JsonPropertyName("id_cliente")]
     public int IdCliente { get; set; }
 
-    [JsonPropertyName("idVuelo")]
+    [JsonPropertyName("id_vuelo")]
     public int IdVuelo { get; set; }
 
-    [JsonPropertyName("fechaInicio")]
+    [JsonPropertyName("fecha_inicio")]
     public DateTime FechaInicio { get; set; }
 
-    [JsonPropertyName("fechaFin")]
+    [JsonPropertyName("fecha_fin")]
     public DateTime FechaFin { get; set; }
 
-    [JsonPropertyName("origenCanalReserva")]
+    [JsonPropertyName("origen_canal_reserva")]
     public string OrigenCanalReserva { get; set; } = "BUS";
 
-    [JsonPropertyName("contactoEmail")]
+    [JsonPropertyName("contacto_email")]
     public string? ContactoEmail { get; set; }
 
-    [JsonPropertyName("contactoTelefono")]
+    [JsonPropertyName("contacto_telefono")]
     public string? ContactoTelefono { get; set; }
 
     [JsonPropertyName("observaciones")]
@@ -158,10 +158,10 @@ public class CrearReservaRequestDto
 
 public class CrearReservaDetalleDto
 {
-    [JsonPropertyName("idPasajero")]
+    [JsonPropertyName("id_pasajero")]
     public int IdPasajero { get; set; }
 
-    [JsonPropertyName("idAsiento")]
+    [JsonPropertyName("id_asiento")]
     public int IdAsiento { get; set; }
 }
 

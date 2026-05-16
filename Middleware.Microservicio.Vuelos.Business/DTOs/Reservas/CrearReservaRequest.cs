@@ -2,6 +2,12 @@
 
 public class CrearReservaRequest
 {
+    /// <summary>
+    /// Requerido para ADMINISTRADOR y AEROLINEA.
+    /// Para CLIENTE se ignora — viene del JWT automáticamente.
+    /// </summary>
+    public int? IdCliente { get; set; }
+
     public int IdVuelo { get; set; }
     public string? ContactoEmail { get; set; }
     public string? ContactoTelefono { get; set; }

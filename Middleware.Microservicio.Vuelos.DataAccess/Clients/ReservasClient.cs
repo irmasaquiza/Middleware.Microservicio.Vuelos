@@ -12,7 +12,7 @@ namespace Middleware.Vuelos.DataAccess.Clients;
 /// URL dev IIS Express: https://localhost:44370
 /// Named HttpClient: "ReservasFClient"
 /// </summary>
-public class ReservasFClient : IReservasFClient
+public partial class ReservasFClient : IReservasFClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<ReservasFClient> _logger;
@@ -135,29 +135,23 @@ public class ReservasFClient : IReservasFClient
     {
         var endpoint = $"api/v1/reservas/{idReserva}/pagar";
 
-        _logger.LogInformation(
-            "[Bus->ReservasF] PagarReserva. IdReserva={IdReserva}", idReserva);
-
         using var requestMessage = new HttpRequestMessage(HttpMethod.Patch, endpoint);
         requestMessage.Headers.Authorization =
             new AuthenticationHeaderValue("Bearer", jwtToken);
 
+        // ← Agregar esta línea — body vacío con Content-Type correcto
+        requestMessage.Content = new StringContent(
+            "{}", System.Text.Encoding.UTF8, "application/json");
+
         HttpResponseMessage response;
-        try
-        {
-            response = await _httpClient.SendAsync(requestMessage);
-        }
+        try { response = await _httpClient.SendAsync(requestMessage); }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex,
-                "[Bus->ReservasF] Error de conexión en PagarReserva. " +
-                "IdReserva={IdReserva}", idReserva);
             throw new InvalidOperationException(
                 "No se pudo conectar con MS ReservasF.", ex);
         }
 
         var body = await response.Content.ReadAsStringAsync();
-
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError(
@@ -169,14 +163,6 @@ public class ReservasFClient : IReservasFClient
 
         var apiResponse = JsonSerializer
             .Deserialize<ReservasApiResponseDto<ReservaDto>>(body, _jsonOptions);
-
-        if (apiResponse?.Success == true)
-        {
-            _logger.LogInformation(
-                "[Bus->ReservasF] PagarReserva exitoso. " +
-                "IdReserva={IdReserva} Estado={Estado}",
-                idReserva, apiResponse.Data?.EstadoReserva);
-        }
 
         return apiResponse?.Success == true ? apiResponse.Data : null;
     }

@@ -4,11 +4,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Middleware.Vuelos.Business.DTOs.Reservas;
 using Middleware.Vuelos.Business.Interfaces;
+using Middleware.Vuelos.DataAccess.Clients;
 
 namespace Middleware.Vuelos.Api.Controllers.V1.Reservas
 {
-    // ── ReservasController ────────────────────────────────────────────────────
-
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/reservas")]
@@ -16,10 +15,31 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Reservas
     public class ReservasController : ControllerBase
     {
         private readonly IReservaOrchestrator _reservaOrchestrator;
+        private readonly ReservasFClient _reservasFClient;
 
-        public ReservasController(IReservaOrchestrator reservaOrchestrator)
+        public ReservasController(
+            IReservaOrchestrator reservaOrchestrator,
+            ReservasFClient reservasFClient)
         {
             _reservaOrchestrator = reservaOrchestrator;
+            _reservasFClient = reservasFClient;
+        }
+
+        /// <summary>
+        /// Lista reservas con filtros y paginación.
+        /// GET /api/v1/reservas
+        /// Roles: ADMINISTRADOR, AEROLINEA
+        /// </summary>
+        [HttpGet]
+        [Authorize(Roles = "ADMINISTRADOR,AEROLINEA")]
+        public async Task<IActionResult> GetPaged(
+            [FromQuery] ReservasFiltroRequest filtro)
+        {
+            var token = ObtenerToken();
+            var result = await _reservasFClient.GetReservasPagedAsync(
+                filtro.IdCliente, filtro.IdVuelo, filtro.CodigoReserva,
+                filtro.EstadoReserva, filtro.Page, filtro.PageSize, token);
+            return Ok(new { success = true, data = result });
         }
 
         /// <summary>
@@ -48,7 +68,23 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Reservas
         public async Task<IActionResult> Crear([FromBody] CrearReservaRequest request)
         {
             var token = ObtenerToken();
-            var idCliente = ObtenerIdCliente();
+
+            int idCliente;
+            if (User.IsInRole("CLIENTE"))
+            {
+                idCliente = ObtenerIdClienteDelJwt();
+            }
+            else
+            {
+                if (request.IdCliente is null or 0)
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Para ADMINISTRADOR o AEROLINEA, " +
+                                  "el campo idCliente es requerido en el body."
+                    });
+                idCliente = request.IdCliente.Value;
+            }
 
             var result = await _reservaOrchestrator.CrearReservaAsync(
                 request, idCliente, token);
@@ -56,6 +92,26 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Reservas
             return CreatedAtAction(nameof(GetById),
                 new { id_reserva = result.IdReserva },
                 new { success = true, message = "Reserva creada correctamente.", data = result });
+        }
+
+        /// <summary>
+        /// Cambia el estado de una reserva.
+        /// PATCH /api/v1/reservas/{id_reserva}/estado
+        /// Roles: ADMINISTRADOR, AEROLINEA, CLIENTE
+        /// </summary>
+        [HttpPatch("{id_reserva:int}/estado")]
+        [Authorize(Roles = "ADMINISTRADOR,AEROLINEA,CLIENTE")]
+        public async Task<IActionResult> CambiarEstado(
+            [FromRoute] int id_reserva,
+            [FromBody] CambiarEstadoReservaRequest request)
+        {
+            var token = ObtenerToken();
+            var result = await _reservasFClient.CambiarEstadoReservaAsync(
+                id_reserva, request.EstadoReserva,
+                request.MotivoCancelacion, token);
+            return result is null
+                ? NotFound(new { success = false, message = "Reserva no encontrada." })
+                : Ok(new { success = true, data = result });
         }
 
         /// <summary>
@@ -113,7 +169,7 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Reservas
                 .ToString()
                 .Replace("Bearer ", "");
 
-        private int ObtenerIdCliente()
+        private int ObtenerIdClienteDelJwt()
         {
             var claim = User.Claims
                 .FirstOrDefault(c => c.Type == "id_cliente")?.Value;

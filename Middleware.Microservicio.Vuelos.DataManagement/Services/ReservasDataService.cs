@@ -56,7 +56,7 @@ public class ReservasDataService : IReservasDataService
             IdVuelo = idVuelo,
             FechaInicio = fechaInicio,
             FechaFin = fechaFin,
-            OrigenCanalReserva = "BUS",
+            OrigenCanalReserva = "WEB",
             ContactoEmail = contactoEmail,
             ContactoTelefono = contactoTelefono,
             Observaciones = observaciones,

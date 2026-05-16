@@ -17,7 +17,7 @@ public class VueloDataModel
 
     public bool EsOperable =>
         !Eliminado &&
-        Estado == "ACT" &&
+        Estado is "ACT" or "ACTIVO" &&
         EstadoVuelo is "PROGRAMADO" or "DEMORADO";
 
     public bool EstaCancelado => EstadoVuelo == "CANCELADO";

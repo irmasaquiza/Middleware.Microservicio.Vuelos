@@ -23,7 +23,7 @@ public class ClienteDataModel
     public bool EsEliminado { get; set; }
 
     /// <summary>Calculado localmente.</summary>
-    public bool EsActivo => !EsEliminado && Estado == "ACT";
+    public bool EsActivo => !EsEliminado && Estado is "ACT" or "ACTIVO";
 
     /// <summary>Nombre completo para logs y respuestas.</summary>
     public string NombreCompleto =>
@@ -54,7 +54,7 @@ public class PasajeroDataModel
     public bool EsEliminado { get; set; }
 
     /// <summary>Calculado localmente.</summary>
-    public bool EsActivo => !EsEliminado && Estado == "ACT";
+    public bool EsActivo => !EsEliminado && Estado is "ACT" or "ACTIVO";
 
     /// <summary>Nombre completo del pasajero.</summary>
     public string NombreCompleto => $"{NombrePasajero} {ApellidoPasajero}";

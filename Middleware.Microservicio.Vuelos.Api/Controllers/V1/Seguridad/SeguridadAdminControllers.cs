@@ -2,14 +2,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Middleware.Vuelos.Business.DTOs.Seguridad;
+using Middleware.Vuelos.Business.Interfaces;
 using Middleware.Vuelos.DataAccess.Clients;
 using Middleware.Vuelos.DataAccess.Models;
-using Middleware.Vuelos.DataAccess.Clients.Interfaces;
-using Middleware.Vuelos.DataAccess.Clients;
 
 namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
 {
-    // ── AuthController extension — logout y register ──────────────────────────
+    // ── AuthAdminController — login, logout y register ────────────────────────
 
     [ApiController]
     [ApiVersion("1.0")]
@@ -17,10 +16,27 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
     public class AuthAdminController : ControllerBase
     {
         private readonly SeguridadClient _seguridadClient;
+        private readonly ISeguridadOrchestrator _seguridadOrchestrator;
 
-        public AuthAdminController(SeguridadClient seguridadClient)
+        public AuthAdminController(
+            SeguridadClient seguridadClient,
+            ISeguridadOrchestrator seguridadOrchestrator)
         {
             _seguridadClient = seguridadClient;
+            _seguridadOrchestrator = seguridadOrchestrator;
+        }
+
+        /// <summary>
+        /// Login — el Bus lo reenvía a MS Seguridad y devuelve el JWT.
+        /// POST /api/v1/auth/login
+        /// Público — no requiere JWT.
+        /// </summary>
+        [HttpPost("login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        {
+            var result = await _seguridadOrchestrator.LoginAsync(request);
+            return Ok(new { success = true, message = "Login exitoso.", data = result });
         }
 
         /// <summary>
@@ -65,8 +81,13 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
             };
 
             var result = await _seguridadClient.RegisterClienteAsync(dto);
+
             if (result is null)
-                return BadRequest(new { success = false, message = "No se pudo registrar el cliente." });
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "No se pudo registrar el cliente. Intenta nuevamente."
+                });
 
             return Created(string.Empty, new
             {

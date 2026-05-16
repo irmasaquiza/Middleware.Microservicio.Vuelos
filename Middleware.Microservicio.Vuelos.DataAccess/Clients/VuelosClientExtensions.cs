@@ -10,7 +10,7 @@ public partial class VuelosClient
 {
     // ── Vuelos Admin ──────────────────────────────────────────────────────────
 
-    public async Task<VuelosAdminPagedDto<VueloDto>?> GetVuelosPagedAsync(
+    public async Task<VuelosPagedResultDto<VueloDto>?> GetVuelosPagedAsync(
         int? idAeropuertoOrigen, int? idAeropuertoDestino,
         string? numeroVuelo, string? estadoVuelo,
         int page, int pageSize)
@@ -30,8 +30,10 @@ public partial class VuelosClient
 
         if (!response.IsSuccessStatusCode) return null;
         var body = await response.Content.ReadAsStringAsync();
+
+
         var apiResponse = JsonSerializer
-            .Deserialize<VuelosApiResponseDto<VuelosAdminPagedDto<VueloDto>>>(body, _jsonOptions);
+            .Deserialize<VuelosApiResponseDto<VuelosPagedResultDto<VueloDto>>>(body, _jsonOptions);
         return apiResponse?.Data;
     }
 
