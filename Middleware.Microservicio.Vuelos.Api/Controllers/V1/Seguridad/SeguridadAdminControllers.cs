@@ -18,15 +18,18 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
         private readonly SeguridadClient _seguridadClient;
         private readonly ClientesClient _clientesClient;
         private readonly ISeguridadOrchestrator _seguridadOrchestrator;
+        private readonly IConfiguration _configuration;
 
         public AuthAdminController(
             SeguridadClient seguridadClient,
             ClientesClient clientesClient,
-            ISeguridadOrchestrator seguridadOrchestrator)
+            ISeguridadOrchestrator seguridadOrchestrator,
+            IConfiguration configuration)
         {
             _seguridadClient = seguridadClient;
             _clientesClient = clientesClient;
             _seguridadOrchestrator = seguridadOrchestrator;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -73,8 +76,9 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
         public async Task<IActionResult> RegisterCliente(
             [FromBody] RegisterClienteRequest request)
         {
-            // ── Paso 1: Crear cliente en MS Clientes ──────────────────────────
-            var clienteDto = await _clientesClient.CrearClienteAsync(
+            // MS Clientes crea el cliente Y el usuario en MS Seguridad
+            // con IdCliente vinculado — todo en un solo paso
+            var clienteDto = await _clientesClient.RegistrarClientePublicoAsync(
                 new CrearClienteRequestDto
                 {
                     TipoIdentificacion = request.TipoIdentificacion,
@@ -87,48 +91,17 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
                     IdCiudadResidencia = request.IdCiudadResidencia,
                     IdPaisNacionalidad = request.IdPaisNacionalidad,
                     Genero = request.Genero,
-                    FechaNacimiento = request.FechaNacimiento
-                },
-                token: null); // registro público — sin token admin
+                    FechaNacimiento = request.FechaNacimiento,
+                    Username = request.Username,  // ← agregar
+                    Password = request.Password   // ← agregar
+                });
 
             if (clienteDto is null)
                 return BadRequest(new
                 {
                     success = false,
-                    message = "No se pudo crear el perfil de cliente. Intenta nuevamente."
+                    message = "No se pudo crear la cuenta. Intenta nuevamente."
                 });
-
-            // ── Paso 2: Crear usuario en MS Seguridad con IdCliente vinculado ─
-            var registerDto = new RegisterClienteRequestDto
-            {
-                TipoIdentificacion = request.TipoIdentificacion,
-                NumeroIdentificacion = request.NumeroIdentificacion,
-                Nombres = request.Nombres,
-                Apellidos = request.Apellidos,
-                Correo = request.Correo,
-                Telefono = request.Telefono,
-                Direccion = request.Direccion,
-                IdCiudadResidencia = request.IdCiudadResidencia,
-                IdPaisNacionalidad = request.IdPaisNacionalidad,
-                Username = request.Username,
-                Password = request.Password,
-                IdCliente = clienteDto.IdCliente  // ← vincula el cliente
-            };
-
-            var result = await _seguridadClient.RegisterClienteAsync(registerDto);
-
-            if (result is null)
-            {
-                // ── COMPENSACIÓN: eliminar el cliente creado ──────────────────
-                await _clientesClient.EliminarClienteAsync(
-                    clienteDto.IdCliente, token: null);
-
-                return BadRequest(new
-                {
-                    success = false,
-                    message = "No se pudo crear la cuenta de usuario. Intenta nuevamente."
-                });
-            }
 
             return Created(string.Empty, new
             {
@@ -137,9 +110,9 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
                 data = new RegisterClienteResponse
                 {
                     IdCliente = clienteDto.IdCliente,
-                    IdUsuario = result.IdUsuario,
-                    Username = result.Username,
-                    RolAsignado = result.RolAsignado
+                    IdUsuario = 0,
+                    Username = request.Username,
+                    RolAsignado = "CLIENTE"
                 }
             });
         }

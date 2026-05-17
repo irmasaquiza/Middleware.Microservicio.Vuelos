@@ -186,6 +186,34 @@ public partial class ClientesClient
             .Deserialize<ClientesApiResponseDto<PasajeroDto>>(body, _jsonOptions);
         return apiResponse?.Success == true ? apiResponse.Data : null;
     }
+    /// <summary>
+    /// Crea un cliente sin autenticación usando el endpoint público del portal.
+    /// POST /api/v1/clientes/portal/registro
+    /// </summary>
+    public async Task<ClienteDto?> RegistrarClientePublicoAsync(
+        CrearClienteRequestDto request)
+    {
+        const string endpoint = "api/v1/clientes/portal/registro";
+
+        using var requestMessage = new HttpRequestMessage(HttpMethod.Post, endpoint);
+        requestMessage.Content = JsonContent.Create(request);
+
+        HttpResponseMessage response;
+        try { response = await _httpClient.SendAsync(requestMessage); }
+        catch (HttpRequestException ex)
+        {
+            throw new InvalidOperationException(
+                "No se pudo conectar con MS Clientes.", ex);
+        }
+
+        var body = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode) return null;
+
+        var apiResponse = JsonSerializer
+            .Deserialize<ClientesApiResponseDto<ClienteDto>>(body, _jsonOptions);
+        return apiResponse?.Success == true ? apiResponse.Data : null;
+    }
+
 }
 
 // ── DTOs nuevos de Clientes ───────────────────────────────────────────────────

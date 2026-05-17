@@ -34,6 +34,12 @@ public partial class SeguridadClient
     public async Task<RegisterClienteResponseDto?> RegisterClienteAsync(
         RegisterClienteRequestDto request)
     {
+
+        // ← Agrega este log temporal
+        _logger.LogInformation(
+            "[Bus->Seguridad] RegisterCliente. Username={Username} IdCliente={IdCliente}",
+            request.Username, request.IdCliente);
+
         const string endpoint = "api/v1/auth/register-cliente";
         HttpResponseMessage response;
         try { response = await _httpClient.PostAsJsonAsync(endpoint, request); }
