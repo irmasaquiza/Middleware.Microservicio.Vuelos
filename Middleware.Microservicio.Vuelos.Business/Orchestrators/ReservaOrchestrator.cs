@@ -2,9 +2,7 @@
 using Middleware.Vuelos.Business.Exceptions;
 using Middleware.Vuelos.Business.Mappers;
 using Middleware.Vuelos.Business.DTOs.Reservas;
-using Middleware.Vuelos.Business.Exceptions;
 using Middleware.Vuelos.Business.Interfaces;
-using Middleware.Vuelos.Business.Mappers;
 using Middleware.Vuelos.DataManagement.Interfaces;
 
 namespace Middleware.Vuelos.Business.Orchestrators;
@@ -116,7 +114,7 @@ public class ReservaOrchestrator : IReservaOrchestrator
                 $"La reserva {idReserva} no existe o no está en estado pagable.");
 
         // ── 2. Procesar el pago en MS ReservasF ──────────────────────────────────
-        // ReservasF crea la factura y los boletos internamente.
+        // MS ReservasF crea la factura, los boletos y bloquea los asientos internamente.
         var reservaPagada = await _reservasDataService.PagarReservaAsync(
             idReserva, jwtToken);
 
@@ -129,47 +127,11 @@ public class ReservaOrchestrator : IReservaOrchestrator
                 "No se pudo procesar el pago de la reserva. Intente nuevamente.");
         }
 
-        // ── 3. Bloquear asientos en MS Vuelos ────────────────────────────────────
-        // Si falla el bloqueo, compensamos cancelando la reserva.
-        var asientosBloqueados = new List<int>();
-
-        foreach (var detalle in reserva.Detalles)
-        {
-            var bloqueado = await _vuelosDataService.BloquearAsientoAsync(
-                reserva.IdVuelo, detalle.IdAsiento, jwtToken);
-
-            if (!bloqueado)
-            {
-                _logger.LogError(
-                    "[Bus][ReservaOrchestrator] Fallo al bloquear asiento. " +
-                    "IdVuelo={IdVuelo} IdAsiento={IdAsiento} IdReserva={IdReserva}",
-                    reserva.IdVuelo, detalle.IdAsiento, idReserva);
-
-                // ── COMPENSACIÓN: liberar asientos ya bloqueados ─────────────────
-                foreach (var idAsientoBloqueado in asientosBloqueados)
-                {
-                    await _vuelosDataService.LiberarAsientoAsync(
-                        reserva.IdVuelo, idAsientoBloqueado, jwtToken);
-                }
-
-                // ── COMPENSACIÓN: cancelar la reserva ───────────────────────────
-                await _reservasDataService.CancelarReservaAsync(
-                    idReserva,
-                    "Error al bloquear asientos en MS Vuelos.",
-                    jwtToken);
-
-                throw new BusinessException(
-                    $"No se pudo bloquear el asiento {detalle.IdAsiento}. " +
-                    "La reserva ha sido cancelada automáticamente.");
-            }
-
-            asientosBloqueados.Add(detalle.IdAsiento);
-        }
+        // ── Paso 3 eliminado — MS ReservasF bloquea los asientos internamente ───
 
         _logger.LogInformation(
-            "[Bus][ReservaOrchestrator] PagarReserva completado. " +
-            "IdReserva={IdReserva} AsientosBloqueados={AsientosBloqueados}",
-            idReserva, asientosBloqueados.Count);
+            "[Bus][ReservaOrchestrator] PagarReserva completado. IdReserva={IdReserva}",
+            idReserva);
 
         return ReservasBusinessMapper.ToReservaResponse(reservaPagada);
     }
