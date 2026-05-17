@@ -182,3 +182,31 @@ public class VuelosApiResponseDto<T>
     [JsonPropertyName("errors")]
     public List<string> Errors { get; set; } = [];
 }
+
+
+public class BookingAsientosResponseDto
+{
+    [JsonPropertyName("idVuelo")]
+    public int IdVuelo { get; set; }
+
+    [JsonPropertyName("numeroVuelo")]
+    public string NumeroVuelo { get; set; } = null!;
+
+    [JsonPropertyName("resumen")]
+    public BookingAsientosResumenDto? Resumen { get; set; }
+
+    [JsonPropertyName("asientos")]
+    public List<AsientoDto>? Asientos { get; set; }
+}
+
+public class BookingAsientosResumenDto
+{
+    [JsonPropertyName("totalAsientos")]
+    public int TotalAsientos { get; set; }
+
+    [JsonPropertyName("disponibles")]
+    public int Disponibles { get; set; }
+
+    [JsonPropertyName("ocupados")]
+    public int Ocupados { get; set; }
+}

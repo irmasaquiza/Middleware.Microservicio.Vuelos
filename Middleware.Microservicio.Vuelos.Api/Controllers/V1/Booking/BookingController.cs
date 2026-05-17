@@ -40,9 +40,31 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Booking
         public async Task<IActionResult> BuscarVuelos(
             [FromQuery] BookingBuscarVuelosRequest request)
         {
+            // Si vienen IDs pero no códigos IATA, resolverlos desde MS Aeropuertos
+            var codigoOrigen = request.CodigoIataOrigen;
+            var codigoDestino = request.CodigoIataDestino;
+
+            if (string.IsNullOrWhiteSpace(codigoOrigen) &&
+                request.IdAeropuertoOrigen.HasValue &&
+                request.IdAeropuertoOrigen.Value > 0)  // ← agregar este check
+            {
+                var aero = await _aeropuertosDataService.GetByIdAsync(
+                    request.IdAeropuertoOrigen.Value);
+                codigoOrigen = aero?.CodigoIata;
+            }
+
+            if (string.IsNullOrWhiteSpace(codigoDestino) &&
+                request.IdAeropuertoDestino.HasValue &&
+                request.IdAeropuertoDestino.Value > 0)  // ← agregar este check
+            {
+                var aero = await _aeropuertosDataService.GetByIdAsync(
+                    request.IdAeropuertoDestino.Value);
+                codigoDestino = aero?.CodigoIata;
+            }
+
             var result = await _vuelosClient.BookingBuscarVuelosAsync(
-                request.CodigoIataOrigen,
-                request.CodigoIataDestino,
+                codigoOrigen,
+                codigoDestino,
                 request.IdAeropuertoOrigen,
                 request.IdAeropuertoDestino,
                 request.FechaSalida,

@@ -16,13 +16,16 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
     public class AuthAdminController : ControllerBase
     {
         private readonly SeguridadClient _seguridadClient;
+        private readonly ClientesClient _clientesClient;
         private readonly ISeguridadOrchestrator _seguridadOrchestrator;
 
         public AuthAdminController(
             SeguridadClient seguridadClient,
+            ClientesClient clientesClient,
             ISeguridadOrchestrator seguridadOrchestrator)
         {
             _seguridadClient = seguridadClient;
+            _clientesClient = clientesClient;
             _seguridadOrchestrator = seguridadOrchestrator;
         }
 
@@ -59,13 +62,44 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
         /// Registro público de cliente con cuenta de usuario.
         /// POST /api/v1/auth/register-cliente
         /// Público — no requiere JWT.
+        ///
+        /// SAGA:
+        /// 1. Crear cliente en MS Clientes → obtener IdCliente
+        /// 2. Crear usuario en MS Seguridad con IdCliente vinculado
+        /// Compensación: si falla paso 2, eliminar el cliente creado.
         /// </summary>
         [HttpPost("register-cliente")]
         [AllowAnonymous]
         public async Task<IActionResult> RegisterCliente(
             [FromBody] RegisterClienteRequest request)
         {
-            var dto = new RegisterClienteRequestDto
+            // ── Paso 1: Crear cliente en MS Clientes ──────────────────────────
+            var clienteDto = await _clientesClient.CrearClienteAsync(
+                new CrearClienteRequestDto
+                {
+                    TipoIdentificacion = request.TipoIdentificacion,
+                    NumeroIdentificacion = request.NumeroIdentificacion,
+                    Nombres = request.Nombres,
+                    Apellidos = request.Apellidos,
+                    Correo = request.Correo,
+                    Telefono = request.Telefono,
+                    Direccion = request.Direccion,
+                    IdCiudadResidencia = request.IdCiudadResidencia,
+                    IdPaisNacionalidad = request.IdPaisNacionalidad,
+                    Genero = request.Genero,
+                    FechaNacimiento = request.FechaNacimiento
+                },
+                token: null); // registro público — sin token admin
+
+            if (clienteDto is null)
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "No se pudo crear el perfil de cliente. Intenta nuevamente."
+                });
+
+            // ── Paso 2: Crear usuario en MS Seguridad con IdCliente vinculado ─
+            var registerDto = new RegisterClienteRequestDto
             {
                 TipoIdentificacion = request.TipoIdentificacion,
                 NumeroIdentificacion = request.NumeroIdentificacion,
@@ -77,17 +111,24 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
                 IdCiudadResidencia = request.IdCiudadResidencia,
                 IdPaisNacionalidad = request.IdPaisNacionalidad,
                 Username = request.Username,
-                Password = request.Password
+                Password = request.Password,
+                IdCliente = clienteDto.IdCliente  // ← vincula el cliente
             };
 
-            var result = await _seguridadClient.RegisterClienteAsync(dto);
+            var result = await _seguridadClient.RegisterClienteAsync(registerDto);
 
             if (result is null)
+            {
+                // ── COMPENSACIÓN: eliminar el cliente creado ──────────────────
+                await _clientesClient.EliminarClienteAsync(
+                    clienteDto.IdCliente, token: null);
+
                 return BadRequest(new
                 {
                     success = false,
-                    message = "No se pudo registrar el cliente. Intenta nuevamente."
+                    message = "No se pudo crear la cuenta de usuario. Intenta nuevamente."
                 });
+            }
 
             return Created(string.Empty, new
             {
@@ -95,7 +136,7 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
                 message = "Cuenta creada correctamente.",
                 data = new RegisterClienteResponse
                 {
-                    IdCliente = result.IdCliente,
+                    IdCliente = clienteDto.IdCliente,
                     IdUsuario = result.IdUsuario,
                     Username = result.Username,
                     RolAsignado = result.RolAsignado
@@ -123,11 +164,6 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
             _seguridadClient = seguridadClient;
         }
 
-        /// <summary>
-        /// Lista usuarios con filtros y paginación.
-        /// GET /api/v1/usuarios
-        /// Rol: ADMINISTRADOR
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetPaged(
             [FromQuery] string? username,
@@ -142,11 +178,6 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
             return Ok(new { success = true, data = result });
         }
 
-        /// <summary>
-        /// Obtiene un usuario por id.
-        /// GET /api/v1/usuarios/{id_usuario}
-        /// Rol: ADMINISTRADOR
-        /// </summary>
         [HttpGet("{id_usuario:int}")]
         public async Task<IActionResult> GetById([FromRoute] int id_usuario)
         {
@@ -157,11 +188,6 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
                 : Ok(new { success = true, data = result });
         }
 
-        /// <summary>
-        /// Crea un usuario de aplicación.
-        /// POST /api/v1/usuarios
-        /// Rol: ADMINISTRADOR
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Crear([FromBody] CrearUsuarioRequest request)
         {
@@ -179,11 +205,6 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
                 : Created(string.Empty, new { success = true, data = result });
         }
 
-        /// <summary>
-        /// Actualiza correo o contraseña de un usuario.
-        /// PUT /api/v1/usuarios/{id_usuario}
-        /// Rol: ADMINISTRADOR
-        /// </summary>
         [HttpPut("{id_usuario:int}")]
         public async Task<IActionResult> Actualizar(
             [FromRoute] int id_usuario,
@@ -202,11 +223,6 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
                 : Ok(new { success = true, data = result });
         }
 
-        /// <summary>
-        /// Elimina lógicamente un usuario.
-        /// DELETE /api/v1/usuarios/{id_usuario}
-        /// Rol: ADMINISTRADOR
-        /// </summary>
         [HttpDelete("{id_usuario:int}")]
         public async Task<IActionResult> Eliminar([FromRoute] int id_usuario)
         {
@@ -217,11 +233,6 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
                 : NotFound(new { success = false, message = "Usuario no encontrado." });
         }
 
-        /// <summary>
-        /// Asigna un rol a un usuario.
-        /// POST /api/v1/usuarios/{id_usuario}/roles
-        /// Rol: ADMINISTRADOR
-        /// </summary>
         [HttpPost("{id_usuario:int}/roles")]
         public async Task<IActionResult> AsignarRol(
             [FromRoute] int id_usuario,
@@ -239,11 +250,6 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Seguridad
                 : Created(string.Empty, new { success = true, data = result });
         }
 
-        /// <summary>
-        /// Remueve un rol de un usuario.
-        /// DELETE /api/v1/usuarios/{id_usuario}/roles/{id_rol}
-        /// Rol: ADMINISTRADOR
-        /// </summary>
         [HttpDelete("{id_usuario:int}/roles/{id_rol:int}")]
         public async Task<IActionResult> RemoverRol(
             [FromRoute] int id_usuario,

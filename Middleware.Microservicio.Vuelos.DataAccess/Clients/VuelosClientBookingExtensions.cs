@@ -21,14 +21,14 @@ public partial class VuelosClient
         DateTime? fechaSalida, int? cantidadPasajeros,
         string? clase, int page, int pageSize)
     {
-        var query = $"api/v1/booking/vuelos/buscar?page={page}&page_size={pageSize}";
-        if (!string.IsNullOrWhiteSpace(codigoIataOrigen)) query += $"&codigo_iata_origen={codigoIataOrigen}";
-        if (!string.IsNullOrWhiteSpace(codigoIataDestino)) query += $"&codigo_iata_destino={codigoIataDestino}";
-        if (idAeropuertoOrigen.HasValue) query += $"&id_aeropuerto_origen={idAeropuertoOrigen}";
-        if (idAeropuertoDestino.HasValue) query += $"&id_aeropuerto_destino={idAeropuertoDestino}";
-        if (fechaSalida.HasValue) query += $"&fecha_salida={fechaSalida:yyyy-MM-dd}";
-        if (cantidadPasajeros.HasValue) query += $"&cantidad_pasajeros={cantidadPasajeros}";
-        if (!string.IsNullOrWhiteSpace(clase)) query += $"&clase={clase}";
+        // MS Vuelos usa Origen, Destino, Fecha — no los nombres del Bus
+        var query = $"api/v1/booking/vuelos/buscar?Page={page}&Limit={pageSize}";
+
+        if (!string.IsNullOrWhiteSpace(codigoIataOrigen)) query += $"&Origen={codigoIataOrigen}";
+        if (!string.IsNullOrWhiteSpace(codigoIataDestino)) query += $"&Destino={codigoIataDestino}";
+        if (fechaSalida.HasValue) query += $"&Fecha={fechaSalida:yyyy-MM-dd}";
+        if (!string.IsNullOrWhiteSpace(clase)) query += $"&Clase={clase}";
+        if (cantidadPasajeros.HasValue) query += $"&Pasajeros={cantidadPasajeros}";
 
         HttpResponseMessage response;
         try { response = await _httpClient.GetAsync(query); }
@@ -40,10 +40,22 @@ public partial class VuelosClient
 
         if (!response.IsSuccessStatusCode) return null;
         var body = await response.Content.ReadAsStringAsync();
+
+        // MS Vuelos devuelve formato booking {meta, data} no {items}
+        // Deserializar diferente
         var apiResponse = JsonSerializer
-            .Deserialize<VuelosApiResponseDto<VuelosAdminPagedDto<VueloDto>>>(
-                body, _jsonOptions);
-        return apiResponse?.Data;
+            .Deserialize<VuelosApiResponseDto<VuelosBookingResponseDto>>(body, _jsonOptions);
+
+        var bookingResponse = apiResponse?.Data;
+        if (bookingResponse?.Data is null) return null;
+
+        return new VuelosAdminPagedDto<VueloDto>
+        {
+            Items = bookingResponse.Data,
+            TotalRegistros = bookingResponse.Meta?.Total ?? 0,
+            PaginaActual = bookingResponse.Meta?.Page ?? 1,
+            TotalPaginas = (bookingResponse.Meta?.Total ?? 0) / (pageSize == 0 ? 20 : pageSize)
+        };
     }
 
     /// <summary>
@@ -111,10 +123,12 @@ public partial class VuelosClient
 
         if (!response.IsSuccessStatusCode) return [];
         var body = await response.Content.ReadAsStringAsync();
+
+        // MS Vuelos devuelve {idVuelo, numeroVuelo, resumen, asientos}
         var apiResponse = JsonSerializer
-            .Deserialize<VuelosApiResponseDto<VuelosPagedResultDto<AsientoDto>>>(
+            .Deserialize<VuelosApiResponseDto<BookingAsientosResponseDto>>(
                 body, _jsonOptions);
-        return apiResponse?.Data?.Items ?? [];
+        return apiResponse?.Data?.Asientos ?? [];
     }
 
     /// <summary>

@@ -1,5 +1,4 @@
-﻿
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Middleware.Vuelos.DataAccess.Models
 {
@@ -25,5 +24,30 @@ namespace Middleware.Vuelos.DataAccess.Models
 
         [JsonPropertyName("expiracion")]
         public DateTime Expiracion { get; set; }
+    }
+
+    // ← Agregar estos dos al final
+    public class VuelosBookingResponseDto
+    {
+        [JsonPropertyName("meta")]
+        public VuelosBookingMetaDto? Meta { get; set; }
+
+        [JsonPropertyName("data")]
+        public List<VueloDto>? Data { get; set; }
+    }
+
+    public class VuelosBookingMetaDto
+    {
+        [JsonPropertyName("total")]
+        public int Total { get; set; }
+
+        [JsonPropertyName("page")]
+        public int Page { get; set; }
+
+        [JsonPropertyName("limit")]
+        public int Limit { get; set; }
+
+        [JsonPropertyName("moneda")]
+        public string Moneda { get; set; } = "USD";
     }
 }

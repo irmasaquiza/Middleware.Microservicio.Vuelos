@@ -29,6 +29,8 @@ namespace Middleware.Vuelos.DataAccess.Models
         public string Username { get; set; } = null!;
         [JsonPropertyName("password")]
         public string Password { get; set; } = null!;
+        public int? IdCliente { get; set; }  // ← agregar esta línea
+
     }
 
     public class RegisterClienteResponseDto
