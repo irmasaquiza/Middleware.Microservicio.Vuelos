@@ -33,6 +33,20 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Aeropuertos
                 filtro.CodigoIata, filtro.CodigoIcao, filtro.Nombre,
                 filtro.IdCiudad, filtro.IdPais, filtro.ZonaHoraria,
                 filtro.Estado, filtro.Page, filtro.PageSize);
+
+            if (result is null)
+                return Ok(new { success = true, data = result });
+
+            // Enriquecer ciudad y pais usando los valores Raw
+            foreach (var a in result.Items)
+            {
+                if (a.Ciudad is null && a.IdCiudadRaw.HasValue)
+                    a.Ciudad = new CiudadCortoDto { IdCiudad = a.IdCiudadRaw.Value };
+
+                if (a.Pais is null && a.IdPaisRaw.HasValue)
+                    a.Pais = new PaisCortoDto { IdPais = a.IdPaisRaw.Value };
+            }
+
             return Ok(new { success = true, data = result });
         }
 
@@ -46,9 +60,16 @@ namespace Middleware.Vuelos.Api.Controllers.V1.Aeropuertos
         public async Task<IActionResult> GetById([FromRoute] int id_aeropuerto)
         {
             var result = await _aeropuertosClient.GetByIdAsync(id_aeropuerto);
-            return result is null
-                ? NotFound(new { success = false, message = "Aeropuerto no encontrado." })
-                : Ok(new { success = true, data = result });
+            if (result is null)
+                return NotFound(new { success = false, message = "Aeropuerto no encontrado." });
+
+            if (result.Ciudad is null && result.IdCiudadRaw.HasValue)
+                result.Ciudad = new CiudadCortoDto { IdCiudad = result.IdCiudadRaw.Value };
+
+            if (result.Pais is null && result.IdPaisRaw.HasValue)
+                result.Pais = new PaisCortoDto { IdPais = result.IdPaisRaw.Value };
+
+            return Ok(new { success = true, data = result });
         }
 
         /// <summary>
