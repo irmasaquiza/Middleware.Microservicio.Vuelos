@@ -21,11 +21,27 @@ public class VueloDto
     [JsonPropertyName("idVuelo")]
     public int IdVuelo { get; set; }
 
+    [JsonPropertyName("origen")]
+    public AeropuertoCortoDto? Origen { get; set; }
+
+    [JsonPropertyName("destino")]
+    public AeropuertoCortoDto? Destino { get; set; }
+
+    // Admin devuelve IDs directos
     [JsonPropertyName("idAeropuertoOrigen")]
-    public int IdAeropuertoOrigen { get; set; }
+    public int? IdAeropuertoOrigenRaw { get; set; }
 
     [JsonPropertyName("idAeropuertoDestino")]
-    public int IdAeropuertoDestino { get; set; }
+    public int? IdAeropuertoDestinoRaw { get; set; }
+
+    // Computed — SIN [JsonPropertyName] para evitar colisión
+    [JsonIgnore]
+    public int IdAeropuertoOrigen =>
+        IdAeropuertoOrigenRaw ?? Origen?.IdAeropuerto ?? 0;
+
+    [JsonIgnore]
+    public int IdAeropuertoDestino =>
+        IdAeropuertoDestinoRaw ?? Destino?.IdAeropuerto ?? 0;
 
     [JsonPropertyName("numeroVuelo")]
     public string NumeroVuelo { get; set; } = null!;
@@ -45,15 +61,38 @@ public class VueloDto
     [JsonPropertyName("capacidadTotal")]
     public int CapacidadTotal { get; set; }
 
-    /// <summary>PROGRAMADO | EN_VUELO | ATERRIZADO | CANCELADO | DEMORADO</summary>
     [JsonPropertyName("estadoVuelo")]
     public string EstadoVuelo { get; set; } = null!;
 
     [JsonPropertyName("estado")]
-    public string Estado { get; set; } = null!;
+    public string? Estado { get; set; }
 
     [JsonPropertyName("eliminado")]
     public bool Eliminado { get; set; }
+}
+
+public class AeropuertoCortoDto
+{
+    [JsonPropertyName("idAeropuerto")]
+    public int IdAeropuerto { get; set; }
+
+    [JsonPropertyName("codigoIata")]
+    public string CodigoIata { get; set; } = null!;
+
+    [JsonPropertyName("nombre")]
+    public string Nombre { get; set; } = null!;
+}
+
+public class AeropuertoIntegrationDto
+{
+    [JsonPropertyName("idAeropuerto")]
+    public int IdAeropuerto { get; set; }
+
+    [JsonPropertyName("codigoIata")]
+    public string CodigoIata { get; set; } = null!;
+
+    [JsonPropertyName("nombre")]
+    public string Nombre { get; set; } = null!;
 }
 
 // ------------------------------------------------------------
@@ -127,7 +166,6 @@ public class AsientoDto
     [JsonPropertyName("numeroAsiento")]
     public string NumeroAsiento { get; set; } = null!;
 
-    /// <summary>ECONOMICA | EJECUTIVA | PRIMERA</summary>
     [JsonPropertyName("clase")]
     public string Clase { get; set; } = null!;
 
@@ -137,12 +175,11 @@ public class AsientoDto
     [JsonPropertyName("precioExtra")]
     public decimal PrecioExtra { get; set; }
 
-    /// <summary>VENTANA | PASILLO | CENTRO — nullable</summary>
     [JsonPropertyName("posicion")]
     public string? Posicion { get; set; }
 
     [JsonPropertyName("estado")]
-    public string Estado { get; set; } = null!;
+    public string? Estado { get; set; }  // ← nullable
 
     [JsonPropertyName("eliminado")]
     public bool Eliminado { get; set; }

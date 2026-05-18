@@ -23,11 +23,26 @@ public class AeropuertoDto
     [JsonPropertyName("nombre")]
     public string Nombre { get; set; } = null!;
 
+    // Booking devuelve objetos anidados
+    [JsonPropertyName("ciudad")]
+    public CiudadCortoDto? Ciudad { get; set; }
+
+    [JsonPropertyName("pais")]
+    public PaisCortoDto? Pais { get; set; }
+
+    // Admin devuelve IDs directos
     [JsonPropertyName("idCiudad")]
-    public int? IdCiudad { get; set; }
+    public int? IdCiudadRaw { get; set; }
 
     [JsonPropertyName("idPais")]
-    public int IdPais { get; set; }
+    public int? IdPaisRaw { get; set; }
+
+    // Computed — SIN [JsonPropertyName]
+    [JsonIgnore]
+    public int? IdCiudad => IdCiudadRaw ?? (Ciudad?.IdCiudad == 0 ? null : Ciudad?.IdCiudad);
+
+    [JsonIgnore]
+    public int IdPais => IdPaisRaw ?? Pais?.IdPais ?? 0;
 
     [JsonPropertyName("zonaHoraria")]
     public string? ZonaHoraria { get; set; }
@@ -39,10 +54,46 @@ public class AeropuertoDto
     public decimal? Longitud { get; set; }
 
     [JsonPropertyName("estado")]
-    public string Estado { get; set; } = null!;
+    public string? Estado { get; set; }
 
     [JsonPropertyName("eliminado")]
     public bool Eliminado { get; set; }
+}
+
+public class CiudadCortoDto
+{
+    [JsonPropertyName("idCiudad")]
+    public int IdCiudad { get; set; }
+
+    [JsonPropertyName("nombre")]
+    public string Nombre { get; set; } = null!;
+}
+
+public class PaisCortoDto
+{
+    [JsonPropertyName("idPais")]
+    public int IdPais { get; set; }
+
+    [JsonPropertyName("nombre")]
+    public string Nombre { get; set; } = null!;
+}
+
+public class CiudadIntegrationDto
+{
+    [JsonPropertyName("idCiudad")]
+    public int IdCiudad { get; set; }
+
+    [JsonPropertyName("nombre")]
+    public string Nombre { get; set; } = null!;
+}
+
+public class PaisIntegrationDto
+{
+    [JsonPropertyName("idPais")]
+    public int IdPais { get; set; }
+
+    [JsonPropertyName("nombre")]
+    public string Nombre { get; set; } = null!;
 }
 
 // ------------------------------------------------------------
